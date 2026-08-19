@@ -9,6 +9,8 @@ const STATUS_COLOR: Record<string, string> = {
   pendente: "var(--status-warning)",
   chamado_aberto: "var(--status-warning)",
   em_manutencao: "var(--status-warning)",
+  respondida: "var(--brand-3)",
+  encerrada: "var(--status-good)",
   sem_aceite: "var(--status-critical)",
   quebrado: "var(--status-critical)",
   inativo: "var(--text-muted)",

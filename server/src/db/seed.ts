@@ -234,12 +234,77 @@ function seed() {
     });
   }
 
+  const meetingsCount = (db.prepare(`SELECT COUNT(*) as c FROM meetings`).get() as any).c;
+  if (meetingsCount === 0) {
+    const managerIdsForMeet = db.prepare(`SELECT id FROM managers`).all() as any[];
+    const insertMeeting = db.prepare(
+      `INSERT INTO meetings (kind, title, meeting_date, meeting_time, location, subject, description, manager_id, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    const kinds = ["reuniao", "treinamento"];
+    const titles = ["Alinhamento mensal", "Treinamento de acolhimento", "Reunião de indicadores", "Capacitação de equipe", "Reunião de feedbacks", "Planejamento semanal"];
+    const locais = ["Sala 1 - IMDL", "Auditório HPS", "Sala de reuniões SUAC", "Online"];
+    const today = new Date();
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - randInt(0, 90));
+      const mgr = managerIdsForMeet[randInt(0, managerIdsForMeet.length - 1)];
+      insertMeeting.run(
+        kinds[randInt(0, 1)],
+        titles[randInt(0, titles.length - 1)],
+        dateStr(d),
+        `${String(randInt(8, 17)).padStart(2, "0")}:00`,
+        locais[randInt(0, locais.length - 1)],
+        "Assunto de demonstração",
+        "Registro de demonstração gerado automaticamente.",
+        mgr.id,
+        adminId
+      );
+    }
+  }
+
+  const ombudsmanCount = (db.prepare(`SELECT COUNT(*) as c FROM ombudsman`).get() as any).c;
+  if (ombudsmanCount === 0) {
+    const managerIdsForOmb = db.prepare(`SELECT id FROM managers`).all() as any[];
+    const insertOmb = db.prepare(
+      `INSERT INTO ombudsman (record_type, number, occurrence_date, response_date, sector, manager_id, status, description, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    const types = ["ouvidoria", "notificacao"];
+    const sectors = ["SEREC", "SUAC", "SETIP", "SEPPERT", "GERAL"];
+    const statuses = ["pendente", "respondida", "encerrada"];
+    const today = new Date();
+    for (let i = 0; i < 50; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - randInt(0, 120));
+      const status = statuses[randInt(0, statuses.length - 1)];
+      let responseDate: string | null = null;
+      if (status !== "pendente") {
+        const rd = new Date(d);
+        rd.setDate(rd.getDate() + randInt(1, 15));
+        responseDate = dateStr(rd);
+      }
+      const mgr = managerIdsForOmb[randInt(0, managerIdsForOmb.length - 1)];
+      insertOmb.run(
+        types[randInt(0, 1)],
+        `${d.getFullYear()}-${String(1000 + i)}`,
+        dateStr(d),
+        responseDate,
+        sectors[randInt(0, sectors.length - 1)],
+        mgr.id,
+        status,
+        "Registro de demonstração gerado automaticamente.",
+        adminId
+      );
+    }
+  }
+
   const feedbackCount = (db.prepare(`SELECT COUNT(*) as c FROM feedbacks`).get() as any).c;
   if (feedbackCount === 0) {
     const managerIds = db.prepare(`SELECT id FROM managers`).all() as any[];
     const collabIds = db.prepare(`SELECT id FROM collaborators`).all() as any[];
     const statuses = ["aceito", "sem_aceite", "pendente"];
-    const types = ["Desempenho", "Comportamental", "Elogio", "Orientação"];
+    const types = ["Orientativo", "Reconhecimento", "Avaliativo"];
     const insertFb = db.prepare(
       `INSERT INTO feedbacks (manager_id, collaborator_id, feedback_date, type, status, description, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?)`

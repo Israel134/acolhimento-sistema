@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { usePageHeader } from "../../contexts/PageHeaderContext";
-import { Tabs, EmptyState } from "../../components/ui/Tabs";
+import { Tabs } from "../../components/ui/Tabs";
 import { SuacFeedbacks } from "./SuacFeedbacks";
 import { SuacAssets } from "./SuacAssets";
+import { SuacMeetings } from "./SuacMeetings";
+import { SuacOmbudsman } from "./SuacOmbudsman";
 
 export default function SuacPage() {
   const [tab, setTab] = useState("feedbacks");
@@ -22,18 +24,8 @@ export default function SuacPage() {
       />
       {tab === "feedbacks" && <SuacFeedbacks />}
       {tab === "patrimonios" && <SuacAssets />}
-      {tab === "treinamentos" && (
-        <EmptyState
-          title="Módulo em construção"
-          message="O indicador de Treinamentos e Reuniões faz parte da próxima etapa de expansão do sistema."
-        />
-      )}
-      {tab === "ouvidorias" && (
-        <EmptyState
-          title="Módulo em construção"
-          message="O indicador de Ouvidorias e Notificações faz parte da próxima etapa de expansão do sistema."
-        />
-      )}
+      {tab === "treinamentos" && <SuacMeetings />}
+      {tab === "ouvidorias" && <SuacOmbudsman />}
     </div>
   );
 }

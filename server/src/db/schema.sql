@@ -169,6 +169,51 @@ CREATE TABLE IF NOT EXISTS seppert_lockers (
   UNIQUE (unit, armario, fileira, posicao)
 );
 
+-- SUAC: Treinamentos e Reuniões
+CREATE TABLE IF NOT EXISTS meetings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL DEFAULT 'reuniao', -- reuniao | treinamento
+  title TEXT NOT NULL,
+  meeting_date TEXT NOT NULL,          -- YYYY-MM-DD
+  meeting_time TEXT,                   -- HH:MM
+  location TEXT,
+  subject TEXT,
+  description TEXT,
+  manager_id INTEGER REFERENCES managers(id),
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS meeting_attachments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  meeting_id INTEGER NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  category TEXT,                       -- ata | lista_presenca | relatorio | material | outro
+  filename TEXT NOT NULL,              -- nome do arquivo salvo em disco
+  original_name TEXT NOT NULL,
+  url TEXT NOT NULL,
+  mime_type TEXT,
+  size INTEGER,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- SUAC: Ouvidorias e Notificações
+CREATE TABLE IF NOT EXISTS ombudsman (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  record_type TEXT NOT NULL DEFAULT 'ouvidoria', -- ouvidoria | notificacao
+  number TEXT,                         -- número da ouvidoria/notificação
+  occurrence_date TEXT NOT NULL,       -- data da ocorrência
+  response_date TEXT,                  -- data da resposta
+  sector TEXT,
+  manager_id INTEGER REFERENCES managers(id),
+  status TEXT NOT NULL DEFAULT 'pendente', -- pendente | respondida | encerrada
+  description TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER REFERENCES users(id),
@@ -193,3 +238,9 @@ CREATE INDEX IF NOT EXISTS idx_setip_transports_date ON setip_transports(record_
 CREATE INDEX IF NOT EXISTS idx_setip_transports_collaborator ON setip_transports(collaborator_id);
 CREATE INDEX IF NOT EXISTS idx_seppert_lockers_unit ON seppert_lockers(unit);
 CREATE INDEX IF NOT EXISTS idx_seppert_lockers_status ON seppert_lockers(status);
+CREATE INDEX IF NOT EXISTS idx_meetings_date ON meetings(meeting_date);
+CREATE INDEX IF NOT EXISTS idx_meetings_manager ON meetings(manager_id);
+CREATE INDEX IF NOT EXISTS idx_meeting_attachments_meeting ON meeting_attachments(meeting_id);
+CREATE INDEX IF NOT EXISTS idx_ombudsman_type ON ombudsman(record_type);
+CREATE INDEX IF NOT EXISTS idx_ombudsman_occurrence ON ombudsman(occurrence_date);
+CREATE INDEX IF NOT EXISTS idx_ombudsman_status ON ombudsman(status);

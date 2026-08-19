@@ -16,6 +16,9 @@ router.post("/clear", requireAuth, requireRole("administrador"), (req, res) => {
     // SEPPERT: não apaga as posições (grade fixa), apenas libera as ocupadas
     db.prepare(`UPDATE seppert_lockers SET status='livre', patient_name=NULL, entry_date=NULL, exit_date=NULL, description=NULL`).run();
     db.prepare(`DELETE FROM feedbacks`).run();
+    db.prepare(`DELETE FROM meeting_attachments`).run();
+    db.prepare(`DELETE FROM meetings`).run();
+    db.prepare(`DELETE FROM ombudsman`).run();
     db.prepare(`DELETE FROM assets`).run();
     db.prepare(`DELETE FROM collaborators`).run();
     db.prepare(`DELETE FROM managers`).run();

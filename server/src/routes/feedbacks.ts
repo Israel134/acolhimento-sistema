@@ -40,8 +40,11 @@ router.get("/agg/summary", requireAuth, (req, res) => {
        GROUP BY month ORDER BY month ASC`
     )
     .all(...params);
+  const byType = db
+    .prepare(`SELECT COALESCE(type,'—') as type, COUNT(*) as c FROM feedbacks ${where} GROUP BY type ORDER BY c DESC`)
+    .all(...params);
 
-  res.json({ total, byStatus, byManager, monthly });
+  res.json({ total, byStatus, byManager, monthly, byType });
 });
 
 export default router;

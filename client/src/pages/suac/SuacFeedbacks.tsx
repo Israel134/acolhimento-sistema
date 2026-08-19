@@ -32,7 +32,7 @@ const STATUSES = [
   { value: "sem_aceite", label: "Sem aceite" },
   { value: "pendente", label: "Pendente" },
 ];
-const TYPES = ["Desempenho", "Comportamental", "Elogio", "Orientação"];
+const TYPES = ["Orientativo", "Reconhecimento", "Avaliativo"];
 
 const emptyForm = { manager_id: "", collaborator_id: "", feedback_date: todayStr(), type: TYPES[0], status: "pendente", description: "" };
 
@@ -57,7 +57,7 @@ export function SuacFeedbacks({ onChanged }: { onChanged?: () => void }) {
   const { data: summary, loading: summaryLoading, refresh } = usePolling(
     async () => {
       const res = await api.get("/suac/feedbacks/agg/summary", { params: { from: period.from, to: period.to } });
-      return res.data as { total: number; byStatus: { status: string; c: number }[]; byManager: { manager: string; c: number }[]; monthly: { month: string; c: number }[] };
+      return res.data as { total: number; byStatus: { status: string; c: number }[]; byManager: { manager: string; c: number }[]; monthly: { month: string; c: number }[]; byType: { type: string; c: number }[] };
     },
     [period.from, period.to]
   );
@@ -167,11 +167,14 @@ export function SuacFeedbacks({ onChanged }: { onChanged?: () => void }) {
         <KpiCard label="% de aceite" value={summaryLoading ? "…" : `${acceptRate}%`} accent="var(--brand-3)" />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid lg:grid-cols-3 gap-4">
         <Card title="Feedbacks por status">
           <AppPieChart data={summary?.byStatus || []} dataKey="c" nameKey="status" />
         </Card>
-        <Card title="Ranking de gestores" subtitle="Feedbacks realizados no período">
+        <Card title="Feedbacks por tipo" subtitle="Orientativo · Reconhecimento · Avaliativo">
+          <AppPieChart data={summary?.byType || []} dataKey="c" nameKey="type" formatName={(v) => v} />
+        </Card>
+        <Card title="Ranking de gestores" subtitle="Feedbacks no período">
           <AppBarChart data={summary?.byManager || []} dataKey="c" xKey="manager" formatXLabel={(v) => v} />
         </Card>
       </div>
@@ -212,8 +215,8 @@ export function SuacFeedbacks({ onChanged }: { onChanged?: () => void }) {
             <Field label="Data" required>
               <Input type="date" required value={form.feedback_date} onChange={(e) => setForm({ ...form, feedback_date: e.target.value })} />
             </Field>
-            <Field label="Tipo">
-              <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+            <Field label="Tipo de feedback" required>
+              <Select required value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
                 {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </Select>
             </Field>
