@@ -80,6 +80,52 @@ export function AppLineChart({
   );
 }
 
+export function AppMultiLineChart({
+  data,
+  lines,
+  xKey = "date",
+  formatX = formatDate,
+  height = 260,
+}: {
+  data: any[];
+  lines: { dataKey: string; label: string; color?: string }[];
+  xKey?: string;
+  formatX?: (v: string) => string;
+  height?: number;
+}) {
+  if (!data?.length) return <EmptyChart />;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+        <CartesianGrid vertical={false} stroke="var(--grid-hairline)" />
+        <XAxis
+          dataKey={xKey}
+          tickFormatter={formatX}
+          tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+          axisLine={{ stroke: "var(--grid-hairline)" }}
+          tickLine={false}
+          minTickGap={24}
+        />
+        <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} width={44} allowDecimals={false} />
+        <Tooltip contentStyle={tooltipStyle} labelFormatter={(v) => formatX(String(v))} />
+        <Legend wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }} />
+        {lines.map((l, i) => (
+          <Line
+            key={l.dataKey}
+            type="monotone"
+            dataKey={l.dataKey}
+            name={l.label}
+            stroke={l.color || CATEGORICAL[i % CATEGORICAL.length]}
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4 }}
+          />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
 export function AppBarChart({
   data,
   dataKey = "total",

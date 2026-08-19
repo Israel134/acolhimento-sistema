@@ -95,6 +95,47 @@ CREATE TABLE IF NOT EXISTS assets (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Indicador 2 (SEREC): entradas (acompanhantes, visitantes e colaboradores)
+CREATE TABLE IF NOT EXISTS serec_entries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  record_date TEXT NOT NULL,          -- YYYY-MM-DD
+  unit TEXT NOT NULL,
+  entry_type TEXT NOT NULL,           -- acompanhante | visitante | colaborador
+  quantity INTEGER NOT NULL,
+  observation TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Indicador 3 (SEREC): tempo de atendimento da recepção (2 sub-indicadores)
+CREATE TABLE IF NOT EXISTS serec_service_times (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  record_date TEXT NOT NULL,          -- YYYY-MM-DD
+  unit TEXT NOT NULL,
+  shift TEXT,                         -- manha | tarde | noite
+  avg_wait_minutes REAL NOT NULL,     -- sub-indicador 1: tempo médio de espera
+  avg_service_minutes REAL NOT NULL,  -- sub-indicador 2: tempo médio de atendimento
+  observation TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Indicador (SEREC): erros operacionais
+CREATE TABLE IF NOT EXISTS serec_operational_errors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  record_date TEXT NOT NULL,          -- YYYY-MM-DD
+  unit TEXT NOT NULL,
+  collaborator_id INTEGER REFERENCES collaborators(id),
+  error_type TEXT NOT NULL,           -- cadastro | documentacao | triagem | comunicacao | sistema | outro
+  severity TEXT NOT NULL DEFAULT 'leve', -- leve | moderado | grave
+  description TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER REFERENCES users(id),
@@ -111,3 +152,7 @@ CREATE INDEX IF NOT EXISTS idx_feedbacks_date ON feedbacks(feedback_date);
 CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
 CREATE INDEX IF NOT EXISTS idx_audit_created_at ON audit_logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_module ON audit_logs(module);
+CREATE INDEX IF NOT EXISTS idx_serec_entries_date ON serec_entries(record_date);
+CREATE INDEX IF NOT EXISTS idx_serec_service_times_date ON serec_service_times(record_date);
+CREATE INDEX IF NOT EXISTS idx_serec_errors_date ON serec_operational_errors(record_date);
+CREATE INDEX IF NOT EXISTS idx_serec_errors_collaborator ON serec_operational_errors(collaborator_id);

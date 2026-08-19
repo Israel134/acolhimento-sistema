@@ -60,7 +60,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
-          label="Pacientes atendidos"
+          label="Atendimentos"
           value={loading ? "…" : data?.cards.totalPatients ?? 0}
           hint="SEREC"
           icon={Activity}

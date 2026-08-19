@@ -1,4 +1,4 @@
-import { daysAgoStr, firstDayOfMonthStr, firstDayOfYearStr, lastDayOfMonthStr, todayStr } from "../../lib/format";
+import { daysAgoStr, firstDayOfMonthStr, firstDayOfYearStr, lastDayOfMonthStr, startOfWeekStr, todayStr } from "../../lib/format";
 import { Input } from "./Form";
 import { Calendar } from "lucide-react";
 
@@ -14,6 +14,7 @@ const PRESETS: { label: string; get: () => Period }[] = [
     label: "Ontem",
     get: () => ({ from: daysAgoStr(1), to: daysAgoStr(1), presetLabel: "Ontem" }),
   },
+  { label: "Esta semana", get: () => ({ from: startOfWeekStr(), to: todayStr(), presetLabel: "Esta semana" }) },
   { label: "Últimos 7 dias", get: () => ({ from: daysAgoStr(6), to: todayStr(), presetLabel: "Últimos 7 dias" }) },
   { label: "Últimos 30 dias", get: () => ({ from: daysAgoStr(29), to: todayStr(), presetLabel: "Últimos 30 dias" }) },
   { label: "Este mês", get: () => ({ from: firstDayOfMonthStr(), to: lastDayOfMonthStr(), presetLabel: "Este mês" }) },
@@ -25,7 +26,7 @@ const PRESETS: { label: string; get: () => Period }[] = [
 ];
 
 export function defaultPeriod(): Period {
-  return PRESETS[3].get(); // últimos 30 dias
+  return (PRESETS.find((p) => p.label === "Últimos 30 dias") || PRESETS[0]).get();
 }
 
 export function PeriodFilter({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {

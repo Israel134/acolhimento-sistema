@@ -11,7 +11,10 @@ import { exportCsv, formatDate, label as labelFor } from "../lib/format";
 import { useToast } from "../contexts/ToastContext";
 
 const INDICATORS = [
-  { value: "serec_patients", label: "SEREC · Pacientes atendidos", endpoint: "/serec/patients", dateField: "record_date" },
+  { value: "serec_patients", label: "SEREC · Atendimentos", endpoint: "/serec/patients", dateField: "record_date" },
+  { value: "serec_entries", label: "SEREC · Entradas", endpoint: "/serec/entries", dateField: "record_date" },
+  { value: "serec_service_times", label: "SEREC · Tempo de Atendimento", endpoint: "/serec/service-times", dateField: "record_date" },
+  { value: "serec_errors", label: "SEREC · Erros Operacionais", endpoint: "/serec/errors", dateField: "record_date" },
   { value: "feedbacks", label: "SUAC · Feedbacks", endpoint: "/suac/feedbacks", dateField: "feedback_date" },
   { value: "assets", label: "SUAC · Patrimônios (sem filtro de data)", endpoint: "/assets", dateField: null },
 ];

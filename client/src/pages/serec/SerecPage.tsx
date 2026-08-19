@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { usePageHeader } from "../../contexts/PageHeaderContext";
-import { Tabs, EmptyState } from "../../components/ui/Tabs";
+import { Tabs } from "../../components/ui/Tabs";
 import SerecPatients from "./SerecPatients";
+import SerecEntries from "./SerecEntries";
+import SerecServiceTimes from "./SerecServiceTimes";
+import SerecErrors from "./SerecErrors";
 
 export default function SerecPage() {
-  const [tab, setTab] = useState("pacientes");
+  const [tab, setTab] = useState("atendimentos");
   usePageHeader({ title: "SEREC · Indicadores" });
 
   return (
     <div className="space-y-4">
       <Tabs
         tabs={[
-          { key: "pacientes", label: "Pacientes Atendidos" },
+          { key: "atendimentos", label: "Atendimentos" },
           { key: "entradas", label: "Entradas" },
           { key: "tempos", label: "Tempo de Atendimento" },
           { key: "erros", label: "Erros Operacionais" },
@@ -19,16 +22,10 @@ export default function SerecPage() {
         active={tab}
         onChange={setTab}
       />
-      {tab === "pacientes" && <SerecPatients />}
-      {tab === "entradas" && (
-        <EmptyState title="Módulo em construção" message="O indicador de Entradas (acompanhantes, visitantes e colaboradores) faz parte da próxima etapa de expansão." />
-      )}
-      {tab === "tempos" && (
-        <EmptyState title="Módulo em construção" message="O indicador de Tempo de Atendimento da recepção faz parte da próxima etapa de expansão." />
-      )}
-      {tab === "erros" && (
-        <EmptyState title="Módulo em construção" message="O indicador de Erros Operacionais faz parte da próxima etapa de expansão." />
-      )}
+      {tab === "atendimentos" && <SerecPatients />}
+      {tab === "entradas" && <SerecEntries />}
+      {tab === "tempos" && <SerecServiceTimes />}
+      {tab === "erros" && <SerecErrors />}
     </div>
   );
 }

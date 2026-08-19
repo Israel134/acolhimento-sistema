@@ -66,7 +66,7 @@ export default function SerecPatients() {
     [period.from, period.to]
   );
 
-  usePageHeader({ title: "SEREC · Pacientes Atendidos", lastUpdated, onRefresh: refresh, refreshing });
+  usePageHeader({ title: "SEREC · Atendimentos", lastUpdated, onRefresh: refresh, refreshing });
 
   const loadTable = async () => {
     setTableLoading(true);
@@ -175,7 +175,7 @@ export default function SerecPatients() {
         <AppBarChart data={summary?.byUnit || []} dataKey="total" xKey="unit" formatXLabel={(v) => v} />
       </Card>
 
-      <Card title="Lançamentos" subtitle="Histórico de pacientes atendidos">
+      <Card title="Lançamentos" subtitle="Histórico de atendimentos (permite lançamento retroativo)">
         <div className="-m-4 sm:-m-5">
           <DataTable
             columns={columns}
@@ -193,7 +193,7 @@ export default function SerecPatients() {
         </div>
       </Card>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Editar lançamento" : "Novo lançamento — Pacientes atendidos"}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Editar lançamento" : "Novo lançamento — Atendimentos (retroativo permitido)"}>
         <form onSubmit={handleSave} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Data" required>

@@ -102,6 +102,76 @@ function seed() {
     }
   }
 
+  const entriesCount = (db.prepare(`SELECT COUNT(*) as c FROM serec_entries`).get() as any).c;
+  if (entriesCount === 0) {
+    const insertEntry = db.prepare(
+      `INSERT INTO serec_entries (record_date, unit, entry_type, quantity, observation, created_by)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    );
+    const entryTypes = ["acompanhante", "visitante", "colaborador"];
+    const today = new Date();
+    for (let i = 59; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const ds = dateStr(d);
+      UNITS.forEach((unit) => {
+        entryTypes.forEach((type) => {
+          const base = type === "acompanhante" ? 20 : type === "visitante" ? 12 : 6;
+          const qty = randInt(Math.max(1, base - 5), base + 8);
+          insertEntry.run(ds, unit, type, qty, null, adminId);
+        });
+      });
+    }
+  }
+
+  const serviceTimesCount = (db.prepare(`SELECT COUNT(*) as c FROM serec_service_times`).get() as any).c;
+  if (serviceTimesCount === 0) {
+    const insertServiceTime = db.prepare(
+      `INSERT INTO serec_service_times (record_date, unit, shift, avg_wait_minutes, avg_service_minutes, observation, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+    const shifts = ["manha", "tarde", "noite"];
+    const today = new Date();
+    for (let i = 59; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const ds = dateStr(d);
+      UNITS.forEach((unit) => {
+        shifts.forEach((shift) => {
+          const wait = randInt(4, 22);
+          const service = randInt(6, 30);
+          insertServiceTime.run(ds, unit, shift, wait, service, null, adminId);
+        });
+      });
+    }
+  }
+
+  const errorsCount = (db.prepare(`SELECT COUNT(*) as c FROM serec_operational_errors`).get() as any).c;
+  if (errorsCount === 0) {
+    const collabIdsForErrors = db.prepare(`SELECT id FROM collaborators`).all() as any[];
+    const insertError = db.prepare(
+      `INSERT INTO serec_operational_errors (record_date, unit, collaborator_id, error_type, severity, description, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+    const errorTypes = ["cadastro", "documentacao", "triagem", "comunicacao", "sistema", "outro"];
+    const severities = ["leve", "moderado", "grave"];
+    const today = new Date();
+    for (let i = 0; i < 40; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - randInt(0, 59));
+      const collab = collabIdsForErrors[randInt(0, collabIdsForErrors.length - 1)];
+      insertError.run(
+        dateStr(d),
+        UNITS[randInt(0, UNITS.length - 1)],
+        collab.id,
+        errorTypes[randInt(0, errorTypes.length - 1)],
+        severities[randInt(0, severities.length - 1)],
+        "Registro de demonstração gerado automaticamente.",
+        adminId
+      );
+    }
+  }
+
   const feedbackCount = (db.prepare(`SELECT COUNT(*) as c FROM feedbacks`).get() as any).c;
   if (feedbackCount === 0) {
     const managerIds = db.prepare(`SELECT id FROM managers`).all() as any[];

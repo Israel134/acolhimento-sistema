@@ -39,6 +39,14 @@ export function firstDayOfYearStr() {
   return `${d.getFullYear()}-01-01`;
 }
 
+export function startOfWeekStr() {
+  const d = new Date();
+  const day = d.getDay(); // 0 = domingo
+  const diff = day === 0 ? 6 : day - 1; // volta até segunda-feira
+  d.setDate(d.getDate() - diff);
+  return d.toISOString().slice(0, 10);
+}
+
 export const STATUS_LABELS: Record<string, string> = {
   ativo: "Ativo",
   inativo: "Inativo",
@@ -59,6 +67,21 @@ export const STATUS_LABELS: Record<string, string> = {
   operacional: "Operacional",
   plantao: "Plantão",
   diarista: "Diarista",
+  acompanhante: "Acompanhante",
+  visitante: "Visitante",
+  colaborador: "Colaborador",
+  manha: "Manhã",
+  tarde: "Tarde",
+  noite: "Noite",
+  cadastro: "Cadastro",
+  documentacao: "Documentação",
+  triagem: "Triagem",
+  comunicacao: "Comunicação",
+  sistema: "Sistema",
+  outro: "Outro",
+  leve: "Leve",
+  moderado: "Moderado",
+  grave: "Grave",
 };
 
 export function label(key?: string | null) {

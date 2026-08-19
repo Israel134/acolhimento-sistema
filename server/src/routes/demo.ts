@@ -9,6 +9,9 @@ const router = Router();
 router.post("/clear", requireAuth, requireRole("administrador"), (req, res) => {
   const tx = db.transaction(() => {
     db.prepare(`DELETE FROM serec_patients`).run();
+    db.prepare(`DELETE FROM serec_entries`).run();
+    db.prepare(`DELETE FROM serec_service_times`).run();
+    db.prepare(`DELETE FROM serec_operational_errors`).run();
     db.prepare(`DELETE FROM feedbacks`).run();
     db.prepare(`DELETE FROM assets`).run();
     db.prepare(`DELETE FROM collaborators`).run();
