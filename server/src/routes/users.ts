@@ -46,28 +46,56 @@ router.post("/", requireAuth, requireRole("administrador"), (req, res) => {
 });
 
 router.put("/:id", requireAuth, requireRole("administrador"), (req, res) => {
-  const existing = db.prepare(`SELECT * FROM users WHERE id = ?`).get(req.params.id);
-  if (!existing) return res.status(404).json({ error: "Usuário não encontrado." });
-  const { name, username, email, role_id, sector, position, status } = req.body || {};
-  db.prepare(
-    `UPDATE users SET name = COALESCE(?,name), username = COALESCE(?,username), email = COALESCE(?,email),
-     role_id = COALESCE(?,role_id), sector = COALESCE(?,sector), position = COALESCE(?,position),
-     status = COALESCE(?,status), updated_at = datetime('now') WHERE id = ?`
-  ).run(name, username, email, role_id, sector, position, status, req.params.id);
-  const updated = db.prepare(`SELECT * FROM users WHERE id = ?`).get(req.params.id);
-  logAudit({ userId: req.user!.id, action: "update", module: "usuarios", recordId: req.params.id, oldData: existing, newData: updated });
-  res.json(updated);
+  try {
+    const existing = db.prepare(`SELECT * FROM users WHERE id = ?`).get(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Usuário não encontrado." });
+    const { name, username, email, role_id, sector, position, status } = req.body || {};
+    db.prepare(
+      `UPDATE users SET name = COALESCE(?,name), username = COALESCE(?,username), email = COALESCE(?,email),
+       role_id = COALESCE(?,role_id), sector = COALESCE(?,sector), position = COALESCE(?,position),
+       status = COALESCE(?,status), updated_at = datetime('now') WHERE id = ?`
+    ).run(name, username, email, role_id, sector, position, status, req.params.id);
+    const updated = db.prepare(`SELECT * FROM users WHERE id = ?`).get(req.params.id);
+    logAudit({ userId: req.user!.id, action: "update", module: "usuarios", recordId: req.params.id, oldData: existing, newData: updated });
+    res.json(updated);
+  } catch (err: any) {
+    console.error(`[users] Falha ao atualizar usuário (id=${req.params.id}):`, err);
+    if (err?.code === "SQLITE_CONSTRAINT_UNIQUE" || /UNIQUE constraint failed/i.test(err?.message || "")) {
+      return res.status(409).json({ error: "Nome de usuário ou e-mail já está em uso por outra conta.", code: "UNIQUE_CONSTRAINT" });
+    }
+    res.status(500).json({ error: "Erro interno do servidor ao atualizar o usuário.", details: err?.message });
+  }
 });
 
 router.delete("/:id", requireAuth, requireRole("administrador"), (req, res) => {
   if (Number(req.params.id) === req.user!.id) {
     return res.status(400).json({ error: "Você não pode excluir seu próprio usuário por aqui. Use 'Excluir conta' no Perfil." });
   }
-  const existing = db.prepare(`SELECT * FROM users WHERE id = ?`).get(req.params.id);
-  if (!existing) return res.status(404).json({ error: "Usuário não encontrado." });
-  db.prepare(`DELETE FROM users WHERE id = ?`).run(req.params.id);
-  logAudit({ userId: req.user!.id, action: "delete", module: "usuarios", recordId: req.params.id, oldData: existing });
-  res.json({ ok: true });
+  try {
+    const existing = db.prepare(`SELECT * FROM users WHERE id = ?`).get(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Usuário não encontrado." });
+    db.prepare(`DELETE FROM users WHERE id = ?`).run(req.params.id);
+    logAudit({ userId: req.user!.id, action: "delete", module: "usuarios", recordId: req.params.id, oldData: existing });
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error(`[users] Falha ao excluir usuário (id=${req.params.id}):`, err);
+    if (
+      err?.code === "SQLITE_CONSTRAINT_FOREIGNKEY" ||
+      err?.code === "SQLITE_CONSTRAINT" ||
+      /FOREIGN KEY constraint failed/i.test(err?.message || "")
+    ) {
+      // Usuário possui lançamentos vinculados (created_by) — inativar preserva o histórico.
+      db.prepare(`UPDATE users SET status = 'inativo', updated_at = datetime('now') WHERE id = ?`).run(req.params.id);
+      logAudit({ userId: req.user!.id, action: "update", module: "usuarios", recordId: req.params.id, newData: { status: "inativo" } });
+      return res.status(200).json({
+        ok: true,
+        message:
+          "Este usuário possui registros vinculados (lançamentos, auditoria etc.) e não pode ser excluído permanentemente. A conta foi desativada e o histórico foi preservado.",
+        deactivated: true,
+      });
+    }
+    res.status(500).json({ error: "Erro interno do servidor ao excluir o usuário.", details: err?.message });
+  }
 });
 
 export default router;

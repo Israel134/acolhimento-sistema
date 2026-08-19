@@ -67,6 +67,10 @@ export function buildCrudRouter(opts: CrudOptions) {
       });
       res.status(201).json(created);
     } catch (err: any) {
+      console.error(`[crudFactory] Falha ao criar registro em "${opts.table}":`, err);
+      if (err?.code === "SQLITE_CONSTRAINT_UNIQUE" || /UNIQUE constraint failed/i.test(err?.message || "")) {
+        return res.status(409).json({ error: "Já existe um registro com esses dados (valor duplicado).", code: "UNIQUE_CONSTRAINT" });
+      }
       res.status(400).json({ error: "Erro ao salvar registro.", details: err.message });
     }
   });
@@ -95,22 +99,49 @@ export function buildCrudRouter(opts: CrudOptions) {
       });
       res.json(updated);
     } catch (err: any) {
+      console.error(`[crudFactory] Falha ao atualizar registro em "${opts.table}" (id=${req.params.id}):`, err);
+      if (err?.code === "SQLITE_CONSTRAINT_UNIQUE" || /UNIQUE constraint failed/i.test(err?.message || "")) {
+        return res.status(409).json({ error: "Já existe um registro com esses dados (valor duplicado).", code: "UNIQUE_CONSTRAINT" });
+      }
+      if (
+        err?.code === "SQLITE_CONSTRAINT_FOREIGNKEY" ||
+        err?.code === "SQLITE_CONSTRAINT" ||
+        /FOREIGN KEY constraint failed/i.test(err?.message || "")
+      ) {
+        return res.status(409).json({ error: "Não é possível salvar: referência inválida a outro registro.", code: "FK_CONSTRAINT" });
+      }
       res.status(400).json({ error: "Erro ao atualizar registro.", details: err.message });
     }
   });
 
   router.delete("/:id", requireAuth, requireRole(...deleteRoles), (req: Request, res: Response) => {
-    const existing = db.prepare(`SELECT * FROM ${opts.table} WHERE id = ?`).get(req.params.id);
-    if (!existing) return res.status(404).json({ error: "Registro não encontrado." });
-    db.prepare(`DELETE FROM ${opts.table} WHERE id = ?`).run(req.params.id);
-    logAudit({
-      userId: req.user!.id,
-      action: "delete",
-      module: opts.module,
-      recordId: req.params.id,
-      oldData: existing,
-    });
-    res.json({ ok: true });
+    try {
+      const existing = db.prepare(`SELECT * FROM ${opts.table} WHERE id = ?`).get(req.params.id);
+      if (!existing) return res.status(404).json({ error: "Registro não encontrado." });
+      db.prepare(`DELETE FROM ${opts.table} WHERE id = ?`).run(req.params.id);
+      logAudit({
+        userId: req.user!.id,
+        action: "delete",
+        module: opts.module,
+        recordId: req.params.id,
+        oldData: existing,
+      });
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error(`[crudFactory] Falha ao excluir registro em "${opts.table}" (id=${req.params.id}):`, err);
+      if (
+        err?.code === "SQLITE_CONSTRAINT_FOREIGNKEY" ||
+        err?.code === "SQLITE_CONSTRAINT" ||
+        /FOREIGN KEY constraint failed/i.test(err?.message || "")
+      ) {
+        return res.status(409).json({
+          error:
+            "Não é possível excluir este registro porque existem outros registros vinculados a ele (ex: feedbacks, lançamentos ou históricos). Remova ou reatribua esses vínculos antes de excluir.",
+          code: "FK_CONSTRAINT",
+        });
+      }
+      res.status(500).json({ error: "Erro interno do servidor ao excluir o registro.", details: err?.message });
+    }
   });
 
   return router;
