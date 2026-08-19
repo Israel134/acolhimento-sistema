@@ -172,6 +172,68 @@ function seed() {
     }
   }
 
+  const setipCount = (db.prepare(`SELECT COUNT(*) as c FROM setip_transports`).get() as any).c;
+  if (setipCount === 0) {
+    const collabIdsForSetip = db.prepare(`SELECT id FROM collaborators`).all() as any[];
+    const insertTransport = db.prepare(
+      `INSERT INTO setip_transports (record_date, unit, collaborator_id, quantity, transport_type, observation, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+    const transportTypes = ["maca", "cadeira_rodas", "leito", "a_pe", "outro"];
+    const today = new Date();
+    for (let i = 0; i < 120; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - randInt(0, 120));
+      const collab = collabIdsForSetip[randInt(0, collabIdsForSetip.length - 1)];
+      insertTransport.run(
+        dateStr(d),
+        UNITS[randInt(0, UNITS.length - 1)],
+        collab.id,
+        randInt(1, 8),
+        transportTypes[randInt(0, transportTypes.length - 1)],
+        null,
+        adminId
+      );
+    }
+  }
+
+  // SEPPERT: garante a grade fixa e ocupa algumas posições de demonstração
+  const seppertUnits = ["IMDL", "HPS 28 de Agosto"];
+  const seppertCount = (db.prepare(`SELECT COUNT(*) as c FROM seppert_lockers`).get() as any).c;
+  if (seppertCount === 0) {
+    const insertLocker = db.prepare(
+      `INSERT OR IGNORE INTO seppert_lockers (unit, armario, fileira, posicao, status) VALUES (?, ?, ?, ?, 'livre')`
+    );
+    for (const unit of seppertUnits) {
+      for (let a = 1; a <= 4; a++) {
+        for (let f = 1; f <= 4; f++) {
+          for (let p = 1; p <= 16; p++) {
+            insertLocker.run(unit, a, f, p);
+          }
+        }
+      }
+    }
+  }
+  const occupiedCount = (db.prepare(`SELECT COUNT(*) as c FROM seppert_lockers WHERE status='ocupado'`).get() as any).c;
+  if (occupiedCount === 0) {
+    const freePositions = db.prepare(`SELECT id FROM seppert_lockers WHERE status='livre' ORDER BY id`).all() as any[];
+    const patients = [
+      "José da Silva", "Maria Oliveira", "Antônio Souza", "Francisca Lima", "João Santos",
+      "Ana Costa", "Pedro Almeida", "Rita Pereira", "Carlos Rodrigues", "Sandra Nascimento",
+      "Paulo Ferreira", "Luzia Araújo", "Marcos Ribeiro", "Teresa Gomes", "Sebastião Martins",
+    ];
+    const today = new Date();
+    patients.forEach((name, i) => {
+      const pos = freePositions[randInt(0, freePositions.length - 1)];
+      if (!pos) return;
+      const d = new Date(today);
+      d.setDate(d.getDate() - randInt(0, 20));
+      db.prepare(
+        `UPDATE seppert_lockers SET status='ocupado', patient_name=?, entry_date=?, description=?, updated_by=? WHERE id=?`
+      ).run(name, dateStr(d), "Pertences de demonstração (mochila, documentos).", adminId, pos.id);
+    });
+  }
+
   const feedbackCount = (db.prepare(`SELECT COUNT(*) as c FROM feedbacks`).get() as any).c;
   if (feedbackCount === 0) {
     const managerIds = db.prepare(`SELECT id FROM managers`).all() as any[];

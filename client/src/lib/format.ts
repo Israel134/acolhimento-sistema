@@ -82,7 +82,23 @@ export const STATUS_LABELS: Record<string, string> = {
   leve: "Leve",
   moderado: "Moderado",
   grave: "Grave",
+  maca: "Maca",
+  cadeira_rodas: "Cadeira de rodas",
+  leito: "Leito",
+  a_pe: "A pé",
+  ocupado: "Ocupado",
+  livre: "Livre",
 };
+
+const MONTH_NAMES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+export function formatMonth(ym?: string | null) {
+  if (!ym) return "-";
+  const [y, m] = ym.split("-");
+  const idx = Number(m) - 1;
+  if (idx < 0 || idx > 11) return ym;
+  return `${MONTH_NAMES[idx]}/${y}`;
+}
 
 export function label(key?: string | null) {
   if (!key) return "-";

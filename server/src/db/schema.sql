@@ -136,6 +136,39 @@ CREATE TABLE IF NOT EXISTS serec_operational_errors (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Indicador (SETIP): transporte de pacientes
+CREATE TABLE IF NOT EXISTS setip_transports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  record_date TEXT NOT NULL,          -- YYYY-MM-DD
+  unit TEXT NOT NULL,
+  collaborator_id INTEGER REFERENCES collaborators(id),
+  quantity INTEGER NOT NULL,          -- quantidade de pacientes transportados
+  transport_type TEXT,                -- maca | cadeira_rodas | leito | a_pe | outro
+  observation TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Indicador (SEPPERT): central de pertences (armários / fileiras / posições)
+CREATE TABLE IF NOT EXISTS seppert_lockers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  unit TEXT NOT NULL,                 -- IMDL | HPS 28 de Agosto
+  armario INTEGER NOT NULL,           -- 1..4
+  fileira INTEGER NOT NULL,           -- 1..4
+  posicao INTEGER NOT NULL,           -- 1..16
+  status TEXT NOT NULL DEFAULT 'livre', -- livre | ocupado
+  patient_name TEXT,
+  entry_date TEXT,
+  exit_date TEXT,
+  description TEXT,
+  created_by INTEGER REFERENCES users(id),
+  updated_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (unit, armario, fileira, posicao)
+);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER REFERENCES users(id),
@@ -156,3 +189,7 @@ CREATE INDEX IF NOT EXISTS idx_serec_entries_date ON serec_entries(record_date);
 CREATE INDEX IF NOT EXISTS idx_serec_service_times_date ON serec_service_times(record_date);
 CREATE INDEX IF NOT EXISTS idx_serec_errors_date ON serec_operational_errors(record_date);
 CREATE INDEX IF NOT EXISTS idx_serec_errors_collaborator ON serec_operational_errors(collaborator_id);
+CREATE INDEX IF NOT EXISTS idx_setip_transports_date ON setip_transports(record_date);
+CREATE INDEX IF NOT EXISTS idx_setip_transports_collaborator ON setip_transports(collaborator_id);
+CREATE INDEX IF NOT EXISTS idx_seppert_lockers_unit ON seppert_lockers(unit);
+CREATE INDEX IF NOT EXISTS idx_seppert_lockers_status ON seppert_lockers(status);
