@@ -354,6 +354,89 @@ function seed() {
     });
   }
 
+  const overtimeCount = (db.prepare(`SELECT COUNT(*) as c FROM overtime`).get() as any).c;
+  if (overtimeCount === 0) {
+    const managerIdsForOt = db.prepare(`SELECT id FROM managers`).all() as any[];
+    const insertOt = db.prepare(
+      `INSERT INTO overtime (record_date, sector, unit, manager_id, hours, observation, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+    const otSectors = ["SEREC", "SETIP"];
+    const today = new Date();
+    for (let i = 0; i < 60; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - randInt(0, 90));
+      const mgr = managerIdsForOt[randInt(0, managerIdsForOt.length - 1)];
+      insertOt.run(
+        dateStr(d),
+        otSectors[randInt(0, 1)],
+        UNITS[randInt(0, UNITS.length - 1)],
+        mgr.id,
+        randInt(1, 8),
+        "Lançamento de demonstração.",
+        adminId
+      );
+    }
+  }
+
+  const tasksCount = (db.prepare(`SELECT COUNT(*) as c FROM tasks`).get() as any).c;
+  if (tasksCount === 0) {
+    const userIds = db.prepare(`SELECT id FROM users`).all() as any[];
+    const insertTask = db.prepare(
+      `INSERT INTO tasks (title, description, assigned_to, priority, due_date, status, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+    const titles = [
+      "Revisar indicadores do mês", "Organizar lista de presença", "Atualizar cadastro de colaboradores",
+      "Preparar relatório de feedbacks", "Conferir armários do SEPPERT", "Responder ouvidoria pendente",
+      "Agendar treinamento da equipe", "Validar lançamentos de horas extras", "Auditar patrimônios",
+      "Planejar reunião mensal",
+    ];
+    const priorities = ["urgente", "alta", "moderada", "baixa"];
+    const statuses = ["pendente", "em_andamento", "concluida"];
+    const today = new Date();
+    titles.forEach((title, i) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() + randInt(-10, 20));
+      const user = userIds[randInt(0, userIds.length - 1)];
+      insertTask.run(
+        title,
+        "Tarefa de demonstração gerada automaticamente.",
+        user.id,
+        priorities[randInt(0, priorities.length - 1)],
+        dateStr(d),
+        statuses[randInt(0, statuses.length - 1)],
+        adminId
+      );
+    });
+  }
+
+  const agendaCount = (db.prepare(`SELECT COUNT(*) as c FROM agenda_events`).get() as any).c;
+  if (agendaCount === 0) {
+    const insertEvent = db.prepare(
+      `INSERT INTO agenda_events (title, event_date, start_time, end_time, location, participants, description, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    const titles = ["Reunião de gestão", "Treinamento SUAC", "Alinhamento SEREC", "Visita técnica", "Comitê de qualidade", "Apresentação de resultados"];
+    const locais = ["Sala 1 - IMDL", "Auditório HPS", "Online", "Sala de reuniões SUAC"];
+    const today = new Date();
+    for (let i = 0; i < 15; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + randInt(-3, 25));
+      const startH = randInt(8, 16);
+      insertEvent.run(
+        titles[randInt(0, titles.length - 1)],
+        dateStr(d),
+        `${String(startH).padStart(2, "0")}:00`,
+        `${String(startH + 1).padStart(2, "0")}:00`,
+        locais[randInt(0, locais.length - 1)],
+        "Equipe SUAC, gestores",
+        "Compromisso de demonstração.",
+        adminId
+      );
+    }
+  }
+
   console.log("Seed de demonstração concluído.");
 }
 

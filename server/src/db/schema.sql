@@ -214,6 +214,51 @@ CREATE TABLE IF NOT EXISTS ombudsman (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- SUAC: Horas Extras
+CREATE TABLE IF NOT EXISTS overtime (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  record_date TEXT NOT NULL,          -- YYYY-MM-DD
+  sector TEXT NOT NULL,               -- SEREC | SETIP
+  unit TEXT,
+  manager_id INTEGER REFERENCES managers(id),
+  hours REAL NOT NULL,
+  observation TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Módulo de Tarefas
+CREATE TABLE IF NOT EXISTS tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  assigned_to INTEGER REFERENCES users(id),   -- responsável (usuário)
+  priority TEXT NOT NULL DEFAULT 'moderada',   -- urgente | alta | moderada | baixa
+  due_date TEXT,                               -- prazo YYYY-MM-DD
+  status TEXT NOT NULL DEFAULT 'pendente',     -- pendente | em_andamento | concluida
+  observation TEXT,
+  completed_at TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Agenda Corporativa
+CREATE TABLE IF NOT EXISTS agenda_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  event_date TEXT NOT NULL,           -- YYYY-MM-DD
+  start_time TEXT,                    -- HH:MM
+  end_time TEXT,                      -- HH:MM
+  location TEXT,
+  participants TEXT,
+  description TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER REFERENCES users(id),
@@ -244,3 +289,9 @@ CREATE INDEX IF NOT EXISTS idx_meeting_attachments_meeting ON meeting_attachment
 CREATE INDEX IF NOT EXISTS idx_ombudsman_type ON ombudsman(record_type);
 CREATE INDEX IF NOT EXISTS idx_ombudsman_occurrence ON ombudsman(occurrence_date);
 CREATE INDEX IF NOT EXISTS idx_ombudsman_status ON ombudsman(status);
+CREATE INDEX IF NOT EXISTS idx_overtime_date ON overtime(record_date);
+CREATE INDEX IF NOT EXISTS idx_overtime_sector ON overtime(sector);
+CREATE INDEX IF NOT EXISTS idx_tasks_assigned ON tasks(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_due ON tasks(due_date);
+CREATE INDEX IF NOT EXISTS idx_agenda_date ON agenda_events(event_date);

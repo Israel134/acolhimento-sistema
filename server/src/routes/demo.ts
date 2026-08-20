@@ -19,6 +19,9 @@ router.post("/clear", requireAuth, requireRole("administrador"), (req, res) => {
     db.prepare(`DELETE FROM meeting_attachments`).run();
     db.prepare(`DELETE FROM meetings`).run();
     db.prepare(`DELETE FROM ombudsman`).run();
+    db.prepare(`DELETE FROM overtime`).run();
+    db.prepare(`DELETE FROM tasks`).run();
+    db.prepare(`DELETE FROM agenda_events`).run();
     db.prepare(`DELETE FROM assets`).run();
     db.prepare(`DELETE FROM collaborators`).run();
     db.prepare(`DELETE FROM managers`).run();

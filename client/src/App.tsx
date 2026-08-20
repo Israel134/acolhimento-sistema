@@ -14,6 +14,8 @@ import SeppertPage from "./pages/seppert/SeppertPage";
 import Colaboradores from "./pages/Colaboradores";
 import Gestores from "./pages/Gestores";
 import Patrimonios from "./pages/Patrimonios";
+import Tarefas from "./pages/Tarefas";
+import Agenda from "./pages/Agenda";
 import Usuarios from "./pages/Usuarios";
 import Relatorios from "./pages/Relatorios";
 import Auditoria from "./pages/Auditoria";
@@ -43,6 +45,22 @@ export default function App() {
                 <Route path="/colaboradores" element={<Colaboradores />} />
                 <Route path="/gestores" element={<Gestores />} />
                 <Route path="/patrimonios" element={<Patrimonios />} />
+                <Route
+                  path="/tarefas"
+                  element={
+                    <ProtectedRoute roles={["administrador", "gestor"]}>
+                      <Tarefas />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/agenda"
+                  element={
+                    <ProtectedRoute roles={["administrador", "gestor"]}>
+                      <Agenda />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/usuarios"
                   element={

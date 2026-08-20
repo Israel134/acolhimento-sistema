@@ -98,6 +98,13 @@ export const STATUS_LABELS: Record<string, string> = {
   lista_presenca: "Lista de presença",
   relatorio: "Relatório",
   material: "Material",
+  urgente: "Urgente",
+  alta: "Alta",
+  moderada: "Moderada",
+  baixa: "Baixa",
+  em_andamento: "Em andamento",
+  concluida: "Concluída",
+  atrasada: "Atrasada",
 };
 
 const MONTH_NAMES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];

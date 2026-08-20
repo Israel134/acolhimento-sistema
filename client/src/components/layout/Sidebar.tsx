@@ -12,6 +12,8 @@ import {
   FileBarChart,
   ShieldCheck,
   Settings,
+  ListChecks,
+  CalendarDays,
   ChevronsLeft,
   ChevronsRight,
   X,
@@ -40,6 +42,13 @@ const GROUPS: NavGroup[] = [
       { to: "/suac", label: "SUAC", icon: Building2 },
       { to: "/setip", label: "SETIP", icon: Ambulance },
       { to: "/seppert", label: "SEPPERT", icon: Boxes },
+    ],
+  },
+  {
+    title: "Gestão",
+    items: [
+      { to: "/tarefas", label: "Tarefas", icon: ListChecks, roles: ["administrador", "gestor"] },
+      { to: "/agenda", label: "Agenda", icon: CalendarDays, roles: ["administrador", "gestor"] },
     ],
   },
   {
