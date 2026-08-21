@@ -80,7 +80,7 @@ export function Sidebar({
   mobileOpen: boolean;
   onCloseMobile: () => void;
 }) {
-  const { user, hasRole } = useAuth();
+  const { hasRole } = useAuth();
 
   const content = (
     <div className="flex flex-col h-full">
@@ -146,26 +146,6 @@ export function Sidebar({
           );
         })}
       </nav>
-
-      {user && (
-        <div className={`border-t border-[var(--border-hairline)] p-3 ${collapsed ? "flex justify-center" : ""}`}>
-          {collapsed ? (
-            <div className="w-8 h-8 rounded-full bg-[var(--brand-1)]/15 text-[var(--brand-1)] flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden" title={user.name}>
-              {user.photo_url ? <img src={user.photo_url} className="w-full h-full object-cover" /> : user.name.slice(0, 2).toUpperCase()}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 px-1">
-              <div className="w-8 h-8 rounded-full bg-[var(--brand-1)]/15 text-[var(--brand-1)] flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
-                {user.photo_url ? <img src={user.photo_url} className="w-full h-full object-cover" /> : user.name.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-[var(--text-primary)] truncate">{user.name}</p>
-                <p className="text-[11px] text-[var(--text-muted)] truncate capitalize">{user.role}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 
