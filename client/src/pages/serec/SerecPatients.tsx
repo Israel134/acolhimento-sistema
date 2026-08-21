@@ -14,6 +14,7 @@ import { DataTable } from "../../components/ui/DataTable";
 import type { Column } from "../../components/ui/DataTable";
 import { Modal, ConfirmDialog } from "../../components/ui/Modal";
 import { Field, Input, Select, Textarea } from "../../components/ui/Form";
+import { ImportButton } from "../../components/ui/ImportButton";
 import { formatDate, label as labelFor, todayStr } from "../../lib/format";
 import { exportCsv } from "../../lib/format";
 import { Activity } from "lucide-react";
@@ -145,9 +146,12 @@ export default function SerecPatients() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <PeriodFilter value={period} onChange={setPeriod} />
         {hasRole("administrador", "gestor", "operacional") && (
-          <Button onClick={openCreate}>
-            <Plus size={16} /> Novo lançamento
-          </Button>
+          <div className="flex gap-2">
+            <ImportButton resource="serec_patients" onDone={() => { loadTable(); refresh(); }} />
+            <Button onClick={openCreate}>
+              <Plus size={16} /> Novo lançamento
+            </Button>
+          </div>
         )}
       </div>
 

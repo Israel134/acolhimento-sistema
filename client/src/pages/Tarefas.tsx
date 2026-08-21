@@ -13,6 +13,7 @@ import type { Column } from "../components/ui/DataTable";
 import { Modal, ConfirmDialog } from "../components/ui/Modal";
 import { Field, Input, Select, Textarea } from "../components/ui/Form";
 import { Badge } from "../components/ui/Badge";
+import { ImportButton } from "../components/ui/ImportButton";
 import { formatDate, label as labelFor, exportCsv } from "../lib/format";
 
 interface Task {
@@ -191,7 +192,8 @@ export default function Tarefas() {
   return (
     <div className="space-y-5">
       {isAdmin && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <ImportButton resource="tasks" onDone={() => { loadTable(); refresh(); }} />
           <Button onClick={openCreate}>
             <Plus size={16} /> Nova tarefa
           </Button>

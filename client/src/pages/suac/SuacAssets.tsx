@@ -12,6 +12,7 @@ import type { Column } from "../../components/ui/DataTable";
 import { Modal, ConfirmDialog } from "../../components/ui/Modal";
 import { Field, Input, Select, Textarea } from "../../components/ui/Form";
 import { Badge } from "../../components/ui/Badge";
+import { ImportButton } from "../../components/ui/ImportButton";
 import { exportCsv } from "../../lib/format";
 
 interface AssetRecord {
@@ -143,11 +144,14 @@ export function SuacAssets({ onChanged }: { onChanged?: () => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
         {hasRole("administrador", "gestor", "operacional") && (
-          <Button onClick={openCreate}>
-            <Plus size={16} /> Novo patrimônio
-          </Button>
+          <>
+            <ImportButton resource="assets" label="Importar planilha" onDone={() => { loadTable(); refresh(); }} />
+            <Button onClick={openCreate}>
+              <Plus size={16} /> Novo patrimônio
+            </Button>
+          </>
         )}
       </div>
 

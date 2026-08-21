@@ -8,6 +8,7 @@ import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Modal, ConfirmDialog } from "../components/ui/Modal";
 import { Field, Input, Textarea } from "../components/ui/Form";
+import { ImportButton } from "../components/ui/ImportButton";
 import { formatDate } from "../lib/format";
 
 interface AgendaEvent {
@@ -175,9 +176,12 @@ export default function Agenda() {
           ))}
         </div>
         {canWrite && (
-          <Button onClick={() => openCreate()}>
-            <Plus size={16} /> Novo compromisso
-          </Button>
+          <div className="flex gap-2">
+            <ImportButton resource="agenda_events" onDone={load} />
+            <Button onClick={() => openCreate()}>
+              <Plus size={16} /> Novo compromisso
+            </Button>
+          </div>
         )}
       </div>
 

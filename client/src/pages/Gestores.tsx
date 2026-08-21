@@ -8,6 +8,7 @@ import { Card, KpiCard } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { DataTable } from "../components/ui/DataTable";
 import type { Column } from "../components/ui/DataTable";
+import { ImportButton } from "../components/ui/ImportButton";
 import { Modal, ConfirmDialog } from "../components/ui/Modal";
 import { Field, Input, Select } from "../components/ui/Form";
 import { Badge } from "../components/ui/Badge";
@@ -108,7 +109,12 @@ export default function Gestores() {
     <div className="space-y-5">
       <div className="flex justify-between items-center gap-3">
         <KpiCard label="Gestores cadastrados" value={rows.total} icon={UserCog} />
-        {hasRole("administrador") && <Button onClick={openCreate}><Plus size={16} /> Novo gestor</Button>}
+        {hasRole("administrador") && (
+          <div className="flex gap-2">
+            <ImportButton resource="managers" label="Importar planilha" onDone={load} />
+            <Button onClick={openCreate}><Plus size={16} /> Novo gestor</Button>
+          </div>
+        )}
       </div>
 
       <Card title="Gestores">

@@ -11,6 +11,7 @@ import type { Column } from "../components/ui/DataTable";
 import { Modal, ConfirmDialog } from "../components/ui/Modal";
 import { Field, Input, Select } from "../components/ui/Form";
 import { Badge } from "../components/ui/Badge";
+import { ImportButton } from "../components/ui/ImportButton";
 import { exportCsv, formatDate } from "../lib/format";
 
 interface Collaborator {
@@ -110,7 +111,10 @@ export default function Colaboradores() {
       <div className="flex justify-between items-center gap-3">
         <KpiCard label="Colaboradores cadastrados" value={rows.total} icon={Users} />
         {hasRole("administrador", "gestor") && (
-          <Button onClick={openCreate}><Plus size={16} /> Novo colaborador</Button>
+          <div className="flex gap-2">
+            <ImportButton resource="collaborators" label="Importar planilha" onDone={load} />
+            <Button onClick={openCreate}><Plus size={16} /> Novo colaborador</Button>
+          </div>
         )}
       </div>
 

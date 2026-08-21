@@ -84,7 +84,7 @@ export function Sidebar({
 
   const content = (
     <div className="flex flex-col h-full">
-      <div className={`flex items-center gap-2 px-4 h-16 shrink-0 border-b border-[var(--border-hairline)] ${collapsed ? "justify-center px-0" : ""}`}>
+      <div className={`shrink-0 border-b border-[var(--border-hairline)] ${collapsed ? "flex flex-col items-center gap-2 py-3" : "flex items-center gap-2 px-4 h-16"}`}>
         <div className="w-8 h-8 rounded-lg bg-[var(--brand-1)] flex items-center justify-center text-white shrink-0">
           <HeartPulse size={18} />
         </div>
@@ -94,7 +94,17 @@ export function Sidebar({
             <p className="text-[11px] text-[var(--text-muted)] leading-tight truncate">Gestão Hospitalar</p>
           </div>
         )}
-        <button onClick={onCloseMobile} className="ml-auto lg:hidden p-1.5 text-[var(--text-muted)]" aria-label="Fechar menu">
+        {/* Botão recolher/expandir — canto superior direito (desktop) */}
+        <button
+          onClick={onToggleCollapse}
+          className={`hidden lg:flex items-center justify-center p-1.5 rounded-md text-[var(--text-muted)] hover:bg-[var(--surface-1)] hover:text-[var(--text-primary)] ${collapsed ? "" : "ml-auto"}`}
+          title={collapsed ? "Expandir menu" : "Recolher menu"}
+          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+        >
+          {collapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
+        </button>
+        {/* Fechar (mobile) */}
+        <button onClick={onCloseMobile} className={`lg:hidden p-1.5 text-[var(--text-muted)] ${collapsed ? "" : "ml-auto"}`} aria-label="Fechar menu">
           <X size={18} />
         </button>
       </div>
@@ -137,25 +147,25 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className={`border-t border-[var(--border-hairline)] p-3 ${collapsed ? "flex justify-center" : ""}`}>
-        {!collapsed && user && (
-          <div className="flex items-center gap-2 px-1 mb-2">
-            <div className="w-8 h-8 rounded-full bg-[var(--brand-1)]/15 text-[var(--brand-1)] flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
+      {user && (
+        <div className={`border-t border-[var(--border-hairline)] p-3 ${collapsed ? "flex justify-center" : ""}`}>
+          {collapsed ? (
+            <div className="w-8 h-8 rounded-full bg-[var(--brand-1)]/15 text-[var(--brand-1)] flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden" title={user.name}>
               {user.photo_url ? <img src={user.photo_url} className="w-full h-full object-cover" /> : user.name.slice(0, 2).toUpperCase()}
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-[var(--text-primary)] truncate">{user.name}</p>
-              <p className="text-[11px] text-[var(--text-muted)] truncate capitalize">{user.role}</p>
+          ) : (
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-8 h-8 rounded-full bg-[var(--brand-1)]/15 text-[var(--brand-1)] flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden">
+                {user.photo_url ? <img src={user.photo_url} className="w-full h-full object-cover" /> : user.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-[var(--text-primary)] truncate">{user.name}</p>
+                <p className="text-[11px] text-[var(--text-muted)] truncate capitalize">{user.role}</p>
+              </div>
             </div>
-          </div>
-        )}
-        <button
-          onClick={onToggleCollapse}
-          className="hidden lg:flex items-center justify-center gap-2 w-full rounded-lg py-1.5 text-xs text-[var(--text-muted)] hover:bg-[var(--surface-1)] hover:text-[var(--text-primary)]"
-        >
-          {collapsed ? <ChevronsRight size={16} /> : (<><ChevronsLeft size={16} /> Recolher</>)}
-        </button>
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 

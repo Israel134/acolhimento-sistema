@@ -14,6 +14,7 @@ import type { Column } from "../../components/ui/DataTable";
 import { Modal, ConfirmDialog } from "../../components/ui/Modal";
 import { Field, Input, Select, Textarea } from "../../components/ui/Form";
 import { Badge } from "../../components/ui/Badge";
+import { ImportButton } from "../../components/ui/ImportButton";
 import { formatDate, formatMonth, label as labelFor, todayStr, exportCsv } from "../../lib/format";
 
 interface Record_ {
@@ -199,9 +200,12 @@ export function SuacOmbudsman() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <PeriodFilter value={period} onChange={setPeriod} />
         {canWrite && (
-          <Button onClick={openCreate}>
-            <Plus size={16} /> Novo registro
-          </Button>
+          <div className="flex gap-2">
+            <ImportButton resource="ombudsman" onDone={() => { loadTable(); refresh(); }} />
+            <Button onClick={openCreate}>
+              <Plus size={16} /> Novo registro
+            </Button>
+          </div>
         )}
       </div>
 
