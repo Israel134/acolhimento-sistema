@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Upload, Download, FileSpreadsheet, CheckCircle2, AlertTriangle } from "lucide-react";
 import { api, apiErrorMessage } from "../../lib/api";
 import { useToast } from "../../contexts/ToastContext";
@@ -10,6 +10,12 @@ interface ImportResult {
   skipped: number;
   errors: { row: number; message: string }[];
   total: number;
+}
+
+interface PromptField {
+  field: string;
+  label: string;
+  options?: string[];
 }
 
 export function ImportButton({
@@ -26,6 +32,20 @@ export function ImportButton({
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const [promptFields, setPromptFields] = useState<PromptField[]>([]);
+  const [prompts, setPrompts] = useState<Record<string, string>>({});
+  const [columns, setColumns] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    api.get(`/import/${resource}/info`).then((r) => {
+      setPromptFields(r.data.promptFields || []);
+      setColumns([...(r.data.columns || []), ...(r.data.lookups || [])]);
+      const init: Record<string, string> = {};
+      (r.data.promptFields || []).forEach((p: PromptField) => { init[p.field] = p.options?.[0] || ""; });
+      setPrompts(init);
+    }).catch(() => {});
+  }, [open, resource]);
 
   const downloadTemplate = async () => {
     try {
@@ -50,6 +70,7 @@ export function ImportButton({
     try {
       const fd = new FormData();
       fd.append("file", file);
+      Object.entries(prompts).forEach(([k, v]) => { if (v) fd.append(k, v); });
       const res = await api.post(`/import/${resource}`, fd);
       setResult(res.data);
       if (res.data.imported > 0) {
@@ -88,7 +109,37 @@ export function ImportButton({
             <Button variant="secondary" size="sm" onClick={downloadTemplate}>
               <Download size={14} /> Baixar modelo (CSV)
             </Button>
+            {columns.length > 0 && (
+              <p className="text-[11px] text-[var(--text-muted)]">
+                Colunas reconhecidas: {columns.join(", ")}.
+              </p>
+            )}
           </div>
+
+          {promptFields.length > 0 && (
+            <div className="space-y-2">
+              {promptFields.map((pf) => (
+                <label key={pf.field} className="block">
+                  <span className="block text-xs font-medium text-[var(--text-secondary)] mb-1">{pf.label}</span>
+                  {pf.options ? (
+                    <select
+                      value={prompts[pf.field] || ""}
+                      onChange={(e) => setPrompts((p) => ({ ...p, [pf.field]: e.target.value }))}
+                      className="w-full rounded-lg border border-[var(--border-hairline)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-1)]/40"
+                    >
+                      {pf.options.map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  ) : (
+                    <input
+                      value={prompts[pf.field] || ""}
+                      onChange={(e) => setPrompts((p) => ({ ...p, [pf.field]: e.target.value }))}
+                      className="w-full rounded-lg border border-[var(--border-hairline)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-1)]/40"
+                    />
+                  )}
+                </label>
+              ))}
+            </div>
+          )}
 
           <label className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[var(--border-hairline)] p-6 cursor-pointer hover:bg-[var(--surface-1)]">
             <FileSpreadsheet size={28} className="text-[var(--text-muted)]" />

@@ -7,7 +7,8 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 
 // Mapas de valores amigáveis -> canônicos
 const SECTOR = { serec: "SEREC", suac: "SUAC", setip: "SETIP", seppert: "SEPPERT", geral: "GERAL" };
-const STATUS_ATIVO = { ativo: "ativo", inativo: "inativo", ativa: "ativo", inativa: "inativo" };
+const STATUS_ATIVO = { ativo: "ativo", inativo: "inativo", ativa: "ativo", inativa: "inativo", a: "ativo", i: "inativo", "1": "ativo", "0": "inativo" };
+const SECTORS_LIST = ["SEREC", "SUAC", "SETIP", "SEPPERT", "GERAL"];
 const ASSET_STATUS = {
   "bom estado": "bom_estado", bom: "bom_estado", "em uso": "bom_estado",
   quebrado: "quebrado", "chamado aberto": "chamado_aberto", resolvido: "resolvido",
@@ -33,27 +34,29 @@ const REGISTRY: Record<string, ImportConfig & { title: string }> = {
     title: "Colaboradores",
     table: "collaborators", module: "colaboradores", writeRoles: ["administrador", "gestor"],
     uniqueBy: ["registration"],
+    promptFields: [{ field: "sector", label: "Setor (use caso a planilha não tenha a coluna Setor)", options: SECTORS_LIST }],
     columns: [
       { field: "name", labels: ["Nome", "name"], required: true },
       { field: "rh", labels: ["RH", "rh"] },
-      { field: "registration", labels: ["Matrícula", "Matricula", "registration"] },
-      { field: "position", labels: ["Cargo", "position"] },
+      { field: "registration", labels: ["Matrícula", "Matricula", "Chapa", "registration"] },
+      { field: "position", labels: ["Cargo", "Nome Funcão", "Nome Funcao", "Função", "Funcao", "Função do colaborador", "position"] },
       { field: "sector", labels: ["Setor", "sector"], required: true, enumMap: SECTOR },
-      { field: "admission_date", labels: ["Data de admissão", "Admissão", "Admissao", "admission_date"], type: "date" },
-      { field: "status", labels: ["Status"], enumMap: STATUS_ATIVO, default: "ativo" },
+      { field: "admission_date", labels: ["Data de admissão", "Data de Admissão", "Admissão", "Admissao", "admission_date"], type: "date" },
+      { field: "status", labels: ["Status", "Situação", "Situacao"], enumMap: STATUS_ATIVO, default: "ativo" },
     ],
   },
   managers: {
     title: "Gestores",
     table: "managers", module: "gestores", writeRoles: ["administrador"],
+    promptFields: [{ field: "sector", label: "Setor (use caso a planilha não tenha a coluna Setor)", options: SECTORS_LIST }],
     columns: [
       { field: "name", labels: ["Nome", "name"], required: true },
       { field: "rh", labels: ["RH", "rh"] },
-      { field: "registration", labels: ["Matrícula", "Matricula", "registration"] },
-      { field: "position", labels: ["Cargo", "position"] },
+      { field: "registration", labels: ["Matrícula", "Matricula", "Chapa", "registration"] },
+      { field: "position", labels: ["Cargo", "Nome Funcão", "Nome Funcao", "Função", "Funcao", "position"] },
       { field: "sector", labels: ["Setor", "sector"], required: true, enumMap: SECTOR },
       { field: "shift_type", labels: ["Tipo", "Turno", "shift_type"] },
-      { field: "status", labels: ["Status"], enumMap: STATUS_ATIVO, default: "ativo" },
+      { field: "status", labels: ["Status", "Situação", "Situacao"], enumMap: STATUS_ATIVO, default: "ativo" },
     ],
   },
   assets: {
@@ -212,6 +215,17 @@ const REGISTRY: Record<string, ImportConfig & { title: string }> = {
 
 const router = Router();
 
+router.get("/:resource/info", requireAuth, (req, res) => {
+  const cfg = REGISTRY[req.params.resource];
+  if (!cfg) return res.status(404).json({ error: "Recurso de importação não encontrado." });
+  res.json({
+    title: cfg.title,
+    columns: cfg.columns.map((c) => c.labels[0]),
+    lookups: (cfg.lookups || []).map((l) => l.labels[0]),
+    promptFields: cfg.promptFields || [],
+  });
+});
+
 router.get("/:resource/template", requireAuth, (req, res) => {
   const cfg = REGISTRY[req.params.resource];
   if (!cfg) return res.status(404).json({ error: "Recurso de importação não encontrado." });
@@ -230,7 +244,14 @@ router.post("/:resource", requireAuth, upload.single("file"), (req, res) => {
   }
   if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado." });
   try {
-    const result = runImport(cfg, req.file.buffer, req.user!.id);
+    // valores informados manualmente na tela (ex: setor quando a planilha não tem a coluna)
+    const overrides: Record<string, any> = {};
+    for (const pf of cfg.promptFields || []) {
+      if (req.body && req.body[pf.field] !== undefined && req.body[pf.field] !== "") {
+        overrides[pf.field] = req.body[pf.field];
+      }
+    }
+    const result = runImport(cfg, req.file.buffer, req.user!.id, overrides);
     res.json(result);
   } catch (err: any) {
     console.error("[imports] Falha ao importar:", err);

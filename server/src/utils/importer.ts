@@ -31,6 +31,12 @@ export interface ImportLookup {
   required?: boolean;
 }
 
+export interface PromptField {
+  field: string;
+  label: string;
+  options?: string[];          // se presente, vira um <select>
+}
+
 export interface ImportConfig {
   table: string;
   module: string;
@@ -38,6 +44,8 @@ export interface ImportConfig {
   lookups?: ImportLookup[];
   uniqueBy?: string[];         // campos que definem duplicidade (pula se já existe)
   writeRoles?: string[];
+  // campos que o usuário pode informar manualmente quando a planilha não tem a coluna
+  promptFields?: PromptField[];
   // transform final da linha antes de inserir (ex: montar defaults)
   finalize?: (row: Record<string, any>) => Record<string, any>;
 }
@@ -108,7 +116,7 @@ export interface ImportResult {
   total: number;
 }
 
-export function runImport(config: ImportConfig, buffer: Buffer, userId: number): ImportResult {
+export function runImport(config: ImportConfig, buffer: Buffer, userId: number, overrides: Record<string, any> = {}): ImportResult {
   const rows = parseSheet(buffer);
   const result: ImportResult = { imported: 0, skipped: 0, errors: [], total: rows.length };
 
@@ -132,6 +140,10 @@ export function runImport(config: ImportConfig, buffer: Buffer, userId: number):
         // colunas simples
         for (const col of config.columns) {
           let v = coerce(col.type, findVal(col.labels), col.enumMap);
+          // valor informado manualmente na tela (usado quando a planilha não tem a coluna)
+          if ((v === null || v === undefined || v === "") && overrides[col.field] !== undefined && overrides[col.field] !== "") {
+            v = coerce(col.type, overrides[col.field], col.enumMap);
+          }
           if ((v === null || v === undefined) && col.default !== undefined) v = col.default;
           if (col.required && (v === null || v === undefined || v === "")) {
             throw new Error(`Coluna obrigatória ausente/vazia: ${col.labels[0]}`);
