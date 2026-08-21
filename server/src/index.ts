@@ -33,7 +33,8 @@ import demoRoutes from "./routes/demo";
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "5mb" }));
-app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+// uploads ficam dentro de data/ para serem cobertos pelo mesmo volume do banco
+app.use("/uploads", express.static(path.resolve(process.cwd(), "data", "uploads")));
 
 app.get("/api/health", (_req, res) => res.json({ ok: true, service: "acolhimento-server" }));
 

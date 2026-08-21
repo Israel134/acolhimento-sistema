@@ -13,6 +13,9 @@ function dateStr(d: Date) {
 }
 
 function seed() {
+  // Dados de demonstração SÓ são inseridos quando SEED_DEMO=1 (nunca em produção/deploy).
+  const SEED_DEMO = process.env.SEED_DEMO === "1" || process.env.SEED_DEMO === "true";
+
   const rolesCount = (db.prepare(`SELECT COUNT(*) as c FROM roles`).get() as any).c;
   if (rolesCount === 0) {
     const insertRole = db.prepare(`INSERT INTO roles (name, description) VALUES (?, ?)`);
@@ -35,10 +38,33 @@ function seed() {
     insertUser.run("Administrador do Sistema", "admin", "admin@acolhimento.local", pass, roleAdmin, "GERAL", "Administrador de TI");
     insertUser.run("Ana Beatriz Souza", "ana.souza", "ana.souza@acolhimento.local", pass, roleGestor, "SUAC", "Gestora SUAC");
     insertUser.run("Carlos Eduardo Lima", "carlos.lima", "carlos.lima@acolhimento.local", pass, roleOperacional, "SEREC", "Recepcionista");
-    console.log("Usuários demo criados. Login: admin / ana.souza / carlos.lima  Senha: Acolher@123");
+    console.log("Usuários base criados. Login: admin / ana.souza / carlos.lima  Senha: Acolher@123");
   }
 
   const adminId = (db.prepare(`SELECT id FROM users WHERE username='admin'`).get() as any).id;
+
+  // Estrutura fixa dos armários do SEPPERT (não é dado de demonstração) — idempotente.
+  const seppertGridCount = (db.prepare(`SELECT COUNT(*) as c FROM seppert_lockers`).get() as any).c;
+  if (seppertGridCount === 0) {
+    const insertLocker = db.prepare(
+      `INSERT OR IGNORE INTO seppert_lockers (unit, armario, fileira, posicao, status) VALUES (?, ?, ?, ?, 'livre')`
+    );
+    for (const unit of ["IMDL", "HPS 28 de Agosto"]) {
+      for (let a = 1; a <= 4; a++) {
+        for (let f = 1; f <= 4; f++) {
+          for (let p = 1; p <= 16; p++) {
+            insertLocker.run(unit, a, f, p);
+          }
+        }
+      }
+    }
+  }
+
+  // A partir daqui é tudo dado de DEMONSTRAÇÃO — só roda com SEED_DEMO=1.
+  if (!SEED_DEMO) {
+    console.log("Seed essencial concluído (perfis, usuários e estrutura). Nenhum dado de demonstração foi inserido.");
+    return;
+  }
 
   const collabCount = (db.prepare(`SELECT COUNT(*) as c FROM collaborators`).get() as any).c;
   if (collabCount === 0) {
